@@ -1,0 +1,10 @@
+server:
+  port: 8080
+spring:
+  redis:
+    lettuce:
+      pool:
+        max-idle: 8
+        min-idle: 0
+        max-active: 8
+    port: 6379
