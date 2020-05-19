@@ -1,5 +1,6 @@
 package com.xgx.web;
 
+import com.xgx.pojo.PublishService;
 import com.xgx.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -11,6 +12,9 @@ public class RedisController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private PublishService publishService;
 
     @GetMapping("set")
     public void setOcr() {
@@ -24,6 +28,11 @@ public class RedisController {
     public void getOcr() {
         User user = (User) redisTemplate.opsForValue().get(1);
         System.out.println(user);
+    }
+
+    @GetMapping("test")
+    public void test(String topic, String message) {
+        publishService.publish(topic, message);
     }
 
 
