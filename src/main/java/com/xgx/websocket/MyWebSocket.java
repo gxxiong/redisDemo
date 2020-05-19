@@ -35,7 +35,6 @@ public class MyWebSocket {
 
     public static Map<String,Session> socketMap = new HashMap<String, Session>();
 
-    public static Session danqianSession;
 
     @BeforeHandshake
     public void handshake(Session session, HttpHeaders headers, @RequestParam String req, @RequestParam MultiValueMap reqMap, @PathVariable String arg, @PathVariable Map pathMap) {
