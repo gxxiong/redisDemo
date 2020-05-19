@@ -1,6 +1,7 @@
 package com.xgx.web;
 
-import com.xgx.pojo.PublishService;
+import com.xgx.websocket.MyWebSocket;
+import com.xgx.websocket.PublishService;
 import com.xgx.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,6 +16,9 @@ public class RedisController {
 
     @Autowired
     private PublishService publishService;
+
+    @Autowired
+    private MyWebSocket myWebSocket;
 
     @GetMapping("set")
     public void setOcr() {
@@ -31,8 +35,11 @@ public class RedisController {
     }
 
     @GetMapping("test")
-    public void test(String topic, String message) {
-        publishService.publish(topic, message);
+    public void test(String userId, String message) {
+        boolean flag = myWebSocket.sendMessageToUser(userId, message);
+        if (!flag) {
+            publishService.publish("xgx", message);
+        }
     }
 
 

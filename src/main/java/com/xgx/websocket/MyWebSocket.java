@@ -1,7 +1,5 @@
-package com.xgx.config;
+package com.xgx.websocket;
 
-import com.xgx.pojo.PublishService;
-import com.xgx.pojo.SubscribeListener;
 import com.xgx.util.SpringContextUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -14,6 +12,7 @@ import org.yeauty.annotation.*;
 import org.yeauty.pojo.Session;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -21,36 +20,47 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @ServerEndpoint(path = "/ws",port = "8091")
 public class MyWebSocket {
 
+    private org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MyWebSocket.class);
+
+    private String userId;
+
     private StringRedisTemplate redisTampate = SpringContextUtils.getBean(StringRedisTemplate.class);
 
     private RedisMessageListenerContainer redisMessageListenerContainer = SpringContextUtils.getBean(RedisMessageListenerContainer.class);
 
+    private RedisMessageListener redisMessageListener = new RedisMessageListener();
+
     //存放该服务器该ws的所有连接。用处：比如向所有连接该ws的用户发送通知消息。
     private static CopyOnWriteArraySet<Session> sessionList = new CopyOnWriteArraySet<>();
+
+    public static Map<String,Session> socketMap = new HashMap<String, Session>();
+
+    public static Session danqianSession;
 
     @BeforeHandshake
     public void handshake(Session session, HttpHeaders headers, @RequestParam String req, @RequestParam MultiValueMap reqMap, @PathVariable String arg, @PathVariable Map pathMap) {
 //        session.setSubprotocols("stomp");
-        if (!req.equals("ok")) {
-            System.out.println("Authentication failed!");
-//            session.close();
-        }
+        System.out.println("websocket handshake!");
     }
 
     @OnOpen
-    public void onOpen(Session session, HttpHeaders headers, @RequestParam String req, @RequestParam MultiValueMap reqMap, @PathVariable String arg, @PathVariable Map pathMap) {
+    public void onOpen(Session session, HttpHeaders headers, @RequestParam String id) {
         sessionList.add(session);
+        userId = id;
+        socketMap.put(userId,session);
 
-        SubscribeListener subscribeListener = new SubscribeListener();
-        subscribeListener.setSession(session);
-        subscribeListener.setStringRedisTemplate(redisTampate);
+//        RedisMessageListener redisMessageListener =new RedisMessageListener ();
+        redisMessageListener.setSession(session);
+        redisMessageListener.setStringRedisTemplate(redisTampate);
         //设置订阅topic
-        redisMessageListenerContainer.addMessageListener(subscribeListener, new ChannelTopic("xgx"));
+        redisMessageListenerContainer.addMessageListener(redisMessageListener, new ChannelTopic("xgx"));
     }
 
     @OnClose
     public void onClose(Session session) throws IOException {
         sessionList.remove(session);
+        socketMap.remove(userId);
+        redisMessageListenerContainer.removeMessageListener(redisMessageListener);
         System.out.println("one connection closed");
     }
 
@@ -96,4 +106,24 @@ public class MyWebSocket {
             }
         }
     }
+
+
+    public boolean sendMessageToUser(String clientId, String message) {
+        Session session = socketMap.get(clientId);
+        if (session == null) {
+            return false;
+        }
+        logger.info("进入发送消息");
+        if (!session.isOpen()) {
+            return false;
+        }
+        try {
+            logger.info("正在发送消息");
+            session.sendText(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
 }

@@ -1,11 +1,14 @@
-package com.xgx.pojo;
+package com.xgx.websocket;
 
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.yeauty.pojo.Session;
 
-public class SubscribeListener implements MessageListener {
+
+public class RedisMessageListener implements MessageListener {
+
+    private org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageListener.class);
 
     private StringRedisTemplate stringRedisTemplate;
 
@@ -17,11 +20,19 @@ public class SubscribeListener implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String msg = new String(message.getBody());
-        System.out.println(new String(pattern) + "主题发布：" + msg);
-        if (null != session) {
-            session.sendText(msg);
+
+//        Session session = MyWebSocket.socketMap.get("1");
+        System.out.println(session);
+
+        if (session != null && session.isOpen()) {
+            try {
+                session.sendText(msg);
+            } catch (Exception e) {
+                logger.error("RedisSubListener消息订阅监听异常：" + e.getMessage());
+            }
         }
     }
+
 
     public StringRedisTemplate getStringRedisTemplate() {
         return stringRedisTemplate;

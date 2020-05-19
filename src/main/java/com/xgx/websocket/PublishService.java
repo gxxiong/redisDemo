@@ -1,4 +1,4 @@
-package com.xgx.pojo;
+package com.xgx.websocket;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
