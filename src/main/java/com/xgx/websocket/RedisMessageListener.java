@@ -19,17 +19,12 @@ public class RedisMessageListener implements MessageListener {
     private GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer;
 
     private Session session;
-    private static Integer count = 0;
 
     /**
      * 订阅接收发布者的消息
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        count++;
-        System.out.println("第几次进来" + count);
-        System.out.println("第几次进来的session" + session);
-//        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
         MessageInfo messageInfo = (MessageInfo) genericJackson2JsonRedisSerializer.deserialize(message.getBody());
         List<String> userIds = messageInfo.getUserIds();
 
