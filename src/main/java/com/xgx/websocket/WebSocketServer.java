@@ -28,7 +28,7 @@ public class WebSocketServer {
 
     private GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
 
-    private RedisMessageListener redisMessageListener = new RedisMessageListener();
+//    private RedisMessageListener redisMessageListener = new RedisMessageListener();
 
     public static Map<String, Session> socketMap = new HashMap<String, Session>();
 
@@ -48,17 +48,17 @@ public class WebSocketServer {
         sessionList.add(session);
         socketMap.put(userId, session);
 
-        redisMessageListener.setSession(session);
-        redisMessageListener.setGenericJackson2JsonRedisSerializer(genericJackson2JsonRedisSerializer);
-        //设置订阅topic
-        redisMessageListenerContainer.addMessageListener(redisMessageListener, new ChannelTopic("xgx"));
+//        redisMessageListener.setSession(session);
+//        redisMessageListener.setGenericJackson2JsonRedisSerializer(genericJackson2JsonRedisSerializer);
+//        //设置订阅topic
+//        redisMessageListenerContainer.addMessageListener(redisMessageListener, new ChannelTopic("xgx"));
     }
 
     @OnClose
     public void onClose(Session session) throws IOException {
         sessionList.remove(session);
         socketMap.remove(userId);
-        redisMessageListenerContainer.removeMessageListener(redisMessageListener);
+//        redisMessageListenerContainer.removeMessageListener(redisMessageListener);
         System.out.println("one connection closed");
     }
 

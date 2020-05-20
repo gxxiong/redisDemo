@@ -1,10 +1,14 @@
 package com.xgx.config;
 
+import com.xgx.websocket.RedisMessageListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 
@@ -28,8 +32,14 @@ public class RedisConfig {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(lettuceConnectionFactory);
 
+        //初始化redis的时候订阅一个topic
+        RedisMessageListener redisMessageListener = new RedisMessageListener();
+        redisMessageListener.setGenericJackson2JsonRedisSerializer(new GenericJackson2JsonRedisSerializer());
+        container.addMessageListener(redisMessageListener, new PatternTopic("xgx"));
+
         return container;
 
     }
+
 
 }

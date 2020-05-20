@@ -20,24 +20,40 @@ public class RedisMessageListener implements MessageListener {
 
     private Session session;
 
+    private static Integer count=0;
+
+
     /**
      * 订阅接收发布者的消息
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
+        count++;
+        System.out.println("第几次进入"+count);
+        System.out.println("session"+session);
         MessageInfo messageInfo = (MessageInfo) genericJackson2JsonRedisSerializer.deserialize(message.getBody());
         List<String> userIds = messageInfo.getUserIds();
 
-        List<Session> sessions = new ArrayList<Session>();
-        for (String id : userIds) {
-            sessions.add(WebSocketServer.socketMap.get(id));
-        }
 
-        if (sessions.contains(session)) {
+        for (String id : userIds) {
+            session = WebSocketServer.socketMap.get(id);
             if (session != null && session.isOpen()) {
                 session.sendText(messageInfo.getMessage());
             }
         }
+
+
+
+//        List<Session> sessions = new ArrayList<Session>();
+//        for (String id : userIds) {
+//            sessions.add(WebSocketServer.socketMap.get(id));
+//        }
+//
+//        if (sessions.contains(session)) {
+//            if (session != null && session.isOpen()) {
+//                session.sendText(messageInfo.getMessage());
+//            }
+//        }
     }
 
 
