@@ -1,53 +1,49 @@
 package com.xgx.websocket;
 
+import com.xgx.pojo.MessageInfo;
+import lombok.Data;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.yeauty.pojo.Session;
 
+import java.util.ArrayList;
+import java.util.List;
 
+
+@Data
 public class RedisMessageListener implements MessageListener {
 
     private org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageListener.class);
 
-    private StringRedisTemplate stringRedisTemplate;
+    private GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer;
 
     private Session session;
+    private static Integer count = 0;
 
     /**
      * 订阅接收发布者的消息
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        String msg = new String(message.getBody());
+        count++;
+        System.out.println("第几次进来" + count);
+        System.out.println("第几次进来的session" + session);
+//        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+        MessageInfo messageInfo = (MessageInfo) genericJackson2JsonRedisSerializer.deserialize(message.getBody());
+        List<String> userIds = messageInfo.getUserIds();
 
-//        Session session = MyWebSocket.socketMap.get("1");
-        System.out.println(session);
+        List<Session> sessions = new ArrayList<Session>();
+        for (String id : userIds) {
+            sessions.add(WebSocketServer.socketMap.get(id));
+        }
 
-        if (session != null && session.isOpen()) {
-            try {
-                session.sendText(msg);
-            } catch (Exception e) {
-                logger.error("RedisSubListener消息订阅监听异常：" + e.getMessage());
+        if (sessions.contains(session)) {
+            if (session != null && session.isOpen()) {
+                session.sendText(messageInfo.getMessage());
             }
         }
     }
 
-
-    public StringRedisTemplate getStringRedisTemplate() {
-        return stringRedisTemplate;
-    }
-
-    public void setStringRedisTemplate(StringRedisTemplate stringRedisTemplate) {
-        this.stringRedisTemplate = stringRedisTemplate;
-    }
-
-    public Session getSession() {
-        return session;
-    }
-
-    public void setSession(Session session) {
-        this.session = session;
-    }
 
 }

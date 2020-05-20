@@ -4,9 +4,9 @@ import com.xgx.util.SpringContextUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.util.MultiValueMap;
 import org.yeauty.annotation.*;
 import org.yeauty.pojo.Session;
@@ -17,23 +17,23 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @DependsOn("SpringContextUtils")
-@ServerEndpoint(path = "/ws",port = "8091")
-public class MyWebSocket {
+@ServerEndpoint(path = "/ws", port = "8091")
+public class WebSocketServer {
 
-    private org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MyWebSocket.class);
+    private org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WebSocketServer.class);
 
     private String userId;
 
-    private StringRedisTemplate redisTampate = SpringContextUtils.getBean(StringRedisTemplate.class);
-
     private RedisMessageListenerContainer redisMessageListenerContainer = SpringContextUtils.getBean(RedisMessageListenerContainer.class);
+
+    private GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
 
     private RedisMessageListener redisMessageListener = new RedisMessageListener();
 
+    public static Map<String, Session> socketMap = new HashMap<String, Session>();
+
     //存放该服务器该ws的所有连接。用处：比如向所有连接该ws的用户发送通知消息。
     private static CopyOnWriteArraySet<Session> sessionList = new CopyOnWriteArraySet<>();
-
-    public static Map<String,Session> socketMap = new HashMap<String, Session>();
 
 
     @BeforeHandshake
@@ -44,13 +44,12 @@ public class MyWebSocket {
 
     @OnOpen
     public void onOpen(Session session, HttpHeaders headers, @RequestParam String id) {
-        sessionList.add(session);
         userId = id;
-        socketMap.put(userId,session);
+        sessionList.add(session);
+        socketMap.put(userId, session);
 
-//        RedisMessageListener redisMessageListener =new RedisMessageListener ();
         redisMessageListener.setSession(session);
-        redisMessageListener.setStringRedisTemplate(redisTampate);
+        redisMessageListener.setGenericJackson2JsonRedisSerializer(genericJackson2JsonRedisSerializer);
         //设置订阅topic
         redisMessageListenerContainer.addMessageListener(redisMessageListener, new ChannelTopic("xgx"));
     }
@@ -70,10 +69,7 @@ public class MyWebSocket {
 
     @OnMessage
     public void onMessage(Session session, String message) {
-        System.out.println("java websocket 收到消息=="+message);
-        PublishService publishService = SpringContextUtils.getBean(PublishService.class);
-//        publishService.publish("1", message);
-
+        System.out.println("java websocket 收到消息==" + message);
         System.out.println(message);
 //        session.sendText("Hello Netty!");
     }

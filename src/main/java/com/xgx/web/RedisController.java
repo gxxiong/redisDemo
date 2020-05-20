@@ -1,12 +1,16 @@
 package com.xgx.web;
 
-import com.xgx.websocket.MyWebSocket;
-import com.xgx.websocket.PublishService;
+import com.google.common.collect.Lists;
+import com.xgx.pojo.MessageInfo;
 import com.xgx.pojo.User;
+import com.xgx.websocket.WebSocketServer;
+import com.xgx.websocket.PublishService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 public class RedisController {
@@ -18,7 +22,7 @@ public class RedisController {
     private PublishService publishService;
 
     @Autowired
-    private MyWebSocket myWebSocket;
+    private WebSocketServer webSocketServer;
 
     @GetMapping("set")
     public void setOcr() {
@@ -35,11 +39,20 @@ public class RedisController {
     }
 
     @GetMapping("test")
-    public void test(String userId, String message) {
-        boolean flag = myWebSocket.sendMessageToUser(userId, message);
-        if (!flag) {
-            publishService.publish("xgx", message);
-        }
+    public void test(String userId, String message) throws Exception {
+
+        MessageInfo messageInfo = new MessageInfo();
+        messageInfo.setMessage(message);
+        List<String> list = Lists.newArrayList("1","2","3");
+        messageInfo.setUserIds(list);
+
+        publishService.publish("xgx", messageInfo);
+
+
+//        boolean flag = myWebSocket.sendMessageToUser(userId, message);
+//        if (!flag) {
+//            publishService.publish("xgx", message);
+//        }
     }
 
 
