@@ -15,9 +15,9 @@ public class ThreadPoolController {
 
 
     @RequestMapping(value = "test")
-    public void test() {
+    public void test() throws Exception {
         User user = new User();
-        iThreadPoolService.add(user);
+        iThreadPoolService.add();
 
     }
 

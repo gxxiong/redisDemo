@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.xgx.pojo.MessageInfo;
 import com.xgx.pojo.User;
 import com.xgx.pojo.WebsocketMsg;
+import com.xgx.service.IThreadPoolService;
 import com.xgx.websocket.WebSocketServer;
 import com.xgx.websocket.WebsocketPublish;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class RedisController {
     @Autowired
     private WebSocketServer webSocketServer;
 
+    @Autowired
+    private IThreadPoolService threadPoolService;
+
     @GetMapping("set")
     public void setOcr() {
         User user = new User();
@@ -40,17 +44,9 @@ public class RedisController {
     }
 
     @GetMapping("test")
-    public void test(String userId, String message) throws Exception {
-
-        WebsocketMsg websocketMsg = new WebsocketMsg();
-        MessageInfo messageInfo = new MessageInfo();
-        messageInfo.setType("feiji");
-        messageInfo.setMessage("我是飞机");
-        websocketMsg.setMessageInfo(messageInfo);
-        List<String> list = Lists.newArrayList("1","2","3");
-        websocketMsg.setUserIds(list);
-
-        websocketPublish.publish("xgx", websocketMsg);
+    public String test(String userId, String message) throws Exception {
+        threadPoolService.add();
+        return "success";
 
 
 //        boolean flag = myWebSocket.sendMessageToUser(userId, message);

@@ -4,5 +4,5 @@ import com.xgx.pojo.User;
 
 public interface IThreadPoolService {
 
-    void add(User user);
+    void add() throws Exception;
 }
