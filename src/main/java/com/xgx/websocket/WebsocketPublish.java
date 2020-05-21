@@ -8,7 +8,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.stereotype.Component;
 
 @Component
-public class PublishService {
+public class WebsocketPublish {
 
     @Autowired
     RedisTemplate<Object, Object> redisTemplate;

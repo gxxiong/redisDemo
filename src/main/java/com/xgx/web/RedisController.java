@@ -3,8 +3,9 @@ package com.xgx.web;
 import com.google.common.collect.Lists;
 import com.xgx.pojo.MessageInfo;
 import com.xgx.pojo.User;
+import com.xgx.pojo.WebsocketMsg;
 import com.xgx.websocket.WebSocketServer;
-import com.xgx.websocket.PublishService;
+import com.xgx.websocket.WebsocketPublish;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,7 @@ public class RedisController {
     private RedisTemplate redisTemplate;
 
     @Autowired
-    private PublishService publishService;
+    private WebsocketPublish websocketPublish;
 
     @Autowired
     private WebSocketServer webSocketServer;
@@ -41,12 +42,15 @@ public class RedisController {
     @GetMapping("test")
     public void test(String userId, String message) throws Exception {
 
+        WebsocketMsg websocketMsg = new WebsocketMsg();
         MessageInfo messageInfo = new MessageInfo();
-        messageInfo.setMessage(message);
+        messageInfo.setType("feiji");
+        messageInfo.setMessage("我是飞机");
+        websocketMsg.setMessageInfo(messageInfo);
         List<String> list = Lists.newArrayList("1","2","3");
-        messageInfo.setUserIds(list);
+        websocketMsg.setUserIds(list);
 
-        publishService.publish("xgx", messageInfo);
+        websocketPublish.publish("xgx", websocketMsg);
 
 
 //        boolean flag = myWebSocket.sendMessageToUser(userId, message);
