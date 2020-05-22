@@ -1,8 +1,12 @@
 package com.xgx.websocket;
 
+import com.alibaba.fastjson.JSON;
+import com.xgx.pojo.WebsocketMsg;
 import com.xgx.util.SpringContextUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.timeout.IdleStateEvent;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -13,6 +17,8 @@ import org.yeauty.pojo.Session;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -34,6 +40,9 @@ public class WebSocketServer {
 
     //存放该服务器该ws的所有连接。用处：比如向所有连接该ws的用户发送通知消息。
     private static CopyOnWriteArraySet<Session> sessionList = new CopyOnWriteArraySet<>();
+
+    @Autowired
+    private WebsocketPublish websocketPublish;
 
 
     @BeforeHandshake
@@ -103,22 +112,23 @@ public class WebSocketServer {
     }
 
 
-    public boolean sendMessageToUser(String clientId, String message) {
-        Session session = socketMap.get(clientId);
-        if (session == null) {
-            return false;
+    public void sendMessageToUser(WebsocketMsg websocketMsg) {
+        //先寻找本机可以发送的消息
+        List<String> userIds = websocketMsg.getUserIds();
+        Iterator<String> iterator = userIds.iterator();
+        while (iterator.hasNext()) {
+            String userId = iterator.next();
+            Session session = socketMap.get(userId);
+            if (session != null && session.isOpen()) {
+                session.sendText(JSON.toJSONString(websocketMsg.getMessageInfo()));
+                iterator.remove();
+            }
         }
-        logger.info("进入发送消息");
-        if (!session.isOpen()) {
-            return false;
+        //将剩下没有发送的消息推送到其他机器
+        websocketMsg.setUserIds(userIds);
+        if (CollectionUtils.isNotEmpty(userIds)) {
+            websocketPublish.publish("xgx", websocketMsg);
         }
-        try {
-            logger.info("正在发送消息");
-            session.sendText(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return true;
     }
 
 }
