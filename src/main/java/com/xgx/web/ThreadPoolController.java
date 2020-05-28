@@ -18,6 +18,11 @@ public class ThreadPoolController {
     public void test() throws Exception {
         User user = new User();
         iThreadPoolService.add();
+    }
+
+    @RequestMapping(value = "check")
+    public void check() throws Exception {
+        iThreadPoolService.check();
 
     }
 
