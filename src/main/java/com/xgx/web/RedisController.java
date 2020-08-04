@@ -40,7 +40,7 @@ public class RedisController {
     @GetMapping("set")
     public void setOcr() {
         User user = new User();
-        user.setId(1);
+//        user.setId(1);
         user.setName("熊高祥");
         redisTemplate.opsForValue().set(1,user);
     }
