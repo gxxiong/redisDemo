@@ -1,7 +1,7 @@
 package com.xgx.redis;
 
 import com.alibaba.fastjson.JSON;
-import com.xgx.pojo.User;
+import com.xgx.pojo.FileManagement;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -11,6 +11,11 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +30,7 @@ public class EsTest {
     @Before
     public void init() {
         client = new RestHighLevelClient(
-                RestClient.builder(new HttpHost("127.0.0.1", 9200, "http"))
+                RestClient.builder(new HttpHost("192.168.8.227", 9200, "http"))
         );
     }
 
@@ -33,12 +38,12 @@ public class EsTest {
     @Test
     public void addDoc() {
         for (int i = 0; i < 3; i++) {
-            User user = new User();
-            user.setName("熊高祥");
-            user.setSex("男");
-            user.setUserId(123);
-            String json = JSON.toJSONString(user);
-            IndexRequest indexRequest = new IndexRequest("xgx", "test", i + "").source(json, XContentType.JSON);
+            FileManagement fileManagement = new FileManagement();
+            fileManagement.setFileName("熊高祥");
+            fileManagement.setId((long) i);
+            fileManagement.setUserId(123L);
+            String json = JSON.toJSONString(fileManagement);
+            IndexRequest indexRequest = new IndexRequest("xgx", "_doc", i + "").source(json, XContentType.JSON);
             try {
                 IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
                 System.out.println("响应结果" + indexResponse);
@@ -47,6 +52,51 @@ public class EsTest {
             }
         }
     }
+
+    @Test
+    public void createIndex() throws IOException {
+        Settings.Builder builder = Settings.builder().put("index.number_of_shards", 1).put("index.number_of_replicas", 1);
+        CreateIndexRequest request = new CreateIndexRequest("pitp-file-management-index").settings(builder);
+        request.mapping(generateBuilder());
+        CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
+    }
+
+    private XContentBuilder generateBuilder() throws IOException {
+        XContentBuilder builder = XContentFactory.jsonBuilder();
+        builder.startObject("completeDoc");
+        {
+            builder.startObject("properties");
+            {
+                builder.startObject("id");
+                {
+                    builder.field("type", "long");
+                }
+                builder.endObject();
+                builder.startObject("pId");
+                {
+                    builder.field("type", "long");
+                }
+                builder.endObject();
+                builder.startObject("fileName");
+                {
+                    builder.field("type", "text");
+                    builder.field("analyzer", "index_ansj");
+                    builder.field("search_analyzer", "query_ansj");
+                }
+                builder.endObject();
+                builder.startObject("createUser");
+                {
+                    builder.field("type", "long");
+                }
+                builder.endObject();
+            }
+            builder.endObject();
+        }
+        builder.endObject();
+        return builder;
+    }
+
+
 
     @Test
     public void delDoc() {

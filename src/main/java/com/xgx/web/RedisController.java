@@ -10,6 +10,7 @@ import com.xgx.websocket.WebSocketServer;
 import com.xgx.websocket.WebsocketPublish;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @RestController
@@ -42,12 +44,12 @@ public class RedisController {
         User user = new User();
 //        user.setId(1);
         user.setName("熊高祥");
-        redisTemplate.opsForValue().set(1,user);
+        redisTemplate.opsForValue().set("1",user,1,TimeUnit.DAYS);
     }
 
     @GetMapping("get")
     public void getOcr() {
-        User user = (User) redisTemplate.opsForValue().get(1);
+        User user = (User) redisTemplate.opsForValue().get("1");
         System.out.println(user);
     }
 
