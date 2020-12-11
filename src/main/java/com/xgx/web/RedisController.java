@@ -2,6 +2,8 @@ package com.xgx.web;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSON;
+import com.xgx.core.exception.BusinessException;
+import com.xgx.core.restful.ResultCode;
 import com.xgx.pojo.DownloadData;
 import com.xgx.pojo.User;
 import com.xgx.service.IThreadPoolService;
@@ -48,9 +50,10 @@ public class RedisController {
     }
 
     @GetMapping("get")
-    public void getOcr() {
+    public void getOcr() throws Exception {
         User user = (User) redisTemplate.opsForValue().get("1");
         System.out.println(user);
+//        throw new BusinessException(ResultCode.CODE_402,"11111");
     }
 
     @GetMapping("template")
