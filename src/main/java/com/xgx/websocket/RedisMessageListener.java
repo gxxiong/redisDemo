@@ -3,6 +3,7 @@ package com.xgx.websocket;
 import com.alibaba.fastjson.JSON;
 import com.xgx.pojo.WebsocketMsg;
 import lombok.Data;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -24,30 +25,20 @@ public class RedisMessageListener implements MessageListener {
     /**
      * 订阅接收发布者的消息
      */
-    @Override
     public void onMessage(Message message, byte[] pattern) {
         WebsocketMsg websocketMsg = (WebsocketMsg) genericJackson2JsonRedisSerializer.deserialize(message.getBody());
         List<String> userIds = websocketMsg.getUserIds();
 
         for (String id : userIds) {
-            session = WebSocketServer.socketMap.get(id);
-            if (session != null && session.isOpen()) {
-                session.sendText(JSON.toJSONString(websocketMsg.getMessageInfo()));
+            List<Session> sessionList = WebSocketServer.socketMap.get(id);
+            if (CollectionUtils.isNotEmpty(sessionList)) {
+                for (Session session : sessionList) {
+                    if (session != null && session.isOpen()) {
+                        session.sendText(JSON.toJSONString(websocketMsg.getMessageInfo()));
+                    }
+                }
             }
         }
-
-
-//        List<Session> sessions = new ArrayList<Session>();
-//        for (String id : userIds) {
-//            sessions.add(WebSocketServer.socketMap.get(id));
-//        }
-//
-//        if (sessions.contains(session)) {
-//            if (session != null && session.isOpen()) {
-//                session.sendText(messageInfo.getMessage());
-//            }
-//        }
     }
-
 
 }

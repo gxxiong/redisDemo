@@ -2,8 +2,8 @@ package com.xgx.web;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSON;
-import com.xgx.core.exception.BusinessException;
-import com.xgx.core.restful.ResultCode;
+import com.xgx.core.restful.Result;
+import com.xgx.core.restful.ResultGenerator;
 import com.xgx.pojo.DownloadData;
 import com.xgx.pojo.User;
 import com.xgx.service.IThreadPoolService;
@@ -12,7 +12,6 @@ import com.xgx.websocket.WebSocketServer;
 import com.xgx.websocket.WebsocketPublish;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -126,15 +125,9 @@ public class RedisController {
     }
 
     @GetMapping("test")
-    public String test(String userId, String message) throws Exception {
-        threadPoolService.add();
-        return "success";
-
-
-//        boolean flag = myWebSocket.sendMessageToUser(userId, message);
-//        if (!flag) {
-//            publishService.publish("xgx", message);
-//        }
+    public Result test(String userId) throws Exception {
+        User user = threadPoolService.selectUserById(userId);
+        return ResultGenerator.genSuccessResult(user);
     }
 
 

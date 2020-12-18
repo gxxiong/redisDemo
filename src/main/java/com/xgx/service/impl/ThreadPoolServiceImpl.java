@@ -1,5 +1,7 @@
 package com.xgx.service.impl;
 
+import com.xgx.mapper.UserMapper;
+import com.xgx.pojo.User;
 import com.xgx.service.IThreadPoolService;
 import com.xgx.util.ThreadPool;
 import com.xgx.websocket.WebsocketPublish;
@@ -16,6 +18,9 @@ public class ThreadPoolServiceImpl implements IThreadPoolService {
 
     @Autowired
     private WebsocketPublish websocketPublish;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public void add() throws Exception {
@@ -76,5 +81,11 @@ public class ThreadPoolServiceImpl implements IThreadPoolService {
 
         long taskCount = tpe.getTaskCount();
         System.out.println("总线程数：" + taskCount);
+    }
+
+    @Override
+    public User selectUserById(String userId) {
+        User user= userMapper.selectUserById(userId);
+        return user;
     }
 }

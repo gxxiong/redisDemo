@@ -1,26 +1,20 @@
 package com.xgx.websocket;
 
-import com.alibaba.fastjson.JSON;
 import com.xgx.pojo.WebsocketMsg;
-import com.xgx.util.SpringContextUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.util.MultiValueMap;
 import org.yeauty.annotation.*;
 import org.yeauty.pojo.Session;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 @DependsOn("SpringContextUtils")
 @ServerEndpoint(path = "/ws", port = "8091")
@@ -30,49 +24,44 @@ public class WebSocketServer {
 
     private String userId;
 
-    private RedisMessageListenerContainer redisMessageListenerContainer = SpringContextUtils.getBean(RedisMessageListenerContainer.class);
-
-    private GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
-
-//    private RedisMessageListener redisMessageListener = new RedisMessageListener();
-
-    public static Map<String, Session> socketMap = new HashMap<String, Session>();
-
-    //存放该服务器该ws的所有连接。用处：比如向所有连接该ws的用户发送通知消息。
-    private static CopyOnWriteArraySet<Session> sessionList = new CopyOnWriteArraySet<>();
-
     @Autowired
     private WebsocketPublish websocketPublish;
+
+    public static Map<String, List<Session>> socketMap = new HashMap<String, List<Session>>(64);
 
 
     @BeforeHandshake
     public void handshake(Session session, HttpHeaders headers, @RequestParam String req, @RequestParam MultiValueMap reqMap, @PathVariable String arg, @PathVariable Map pathMap) {
-//        session.setSubprotocols("stomp");
-        System.out.println("websocket handshake!");
+        logger.info("websocket handshake!");
     }
 
     @OnOpen
     public void onOpen(Session session, HttpHeaders headers, @RequestParam String id) {
+        logger.info("WebSocketServer has a new connection");
         userId = id;
+        logger.info("userId:" + userId);
+        List<Session> sessionList = socketMap.get(userId);
+        if (CollectionUtils.isEmpty(sessionList)) {
+            sessionList = new ArrayList<Session>();
+        }
         sessionList.add(session);
-        socketMap.put(userId, session);
-
-//        redisMessageListener.setSession(session);
-//        redisMessageListener.setGenericJackson2JsonRedisSerializer(genericJackson2JsonRedisSerializer);
-//        //设置订阅topic
-//        redisMessageListenerContainer.addMessageListener(redisMessageListener, new ChannelTopic("xgx"));
+        socketMap.put(userId, sessionList);
     }
 
     @OnClose
     public void onClose(Session session) throws IOException {
+        List<Session> sessionList = socketMap.get(userId);
         sessionList.remove(session);
-        socketMap.remove(userId);
-//        redisMessageListenerContainer.removeMessageListener(redisMessageListener);
-        System.out.println("one connection closed");
+        socketMap.put(userId, sessionList);
+        logger.info("one connection closed");
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
+        List<Session> sessionList = socketMap.get(userId);
+        sessionList.remove(session);
+        socketMap.put(userId, sessionList);
+        logger.error("connection onError");
         throwable.printStackTrace();
     }
 
@@ -80,7 +69,6 @@ public class WebSocketServer {
     public void onMessage(Session session, String message) {
         System.out.println("java websocket 收到消息==" + message);
         System.out.println(message);
-//        session.sendText("Hello Netty!");
     }
 
     @OnBinary
@@ -113,20 +101,10 @@ public class WebSocketServer {
 
 
     public void sendMessageToUser(WebsocketMsg websocketMsg) {
-        //先寻找本机可以发送的消息
         List<String> userIds = websocketMsg.getUserIds();
-        Iterator<String> iterator = userIds.iterator();
-        while (iterator.hasNext()) {
-            String userId = iterator.next();
-            Session session = socketMap.get(userId);
-            if (session != null && session.isOpen()) {
-                session.sendText(JSON.toJSONString(websocketMsg.getMessageInfo()));
-                iterator.remove();
-            }
-        }
-        //将剩下没有发送的消息推送到其他机器
-        websocketMsg.setUserIds(userIds);
         if (CollectionUtils.isNotEmpty(userIds)) {
+            //将剩下没有发送的消息推送到其他机器
+            websocketMsg.setUserIds(userIds);
             websocketPublish.publish("xgx", websocketMsg);
         }
     }
