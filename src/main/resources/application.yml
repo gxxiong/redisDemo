@@ -43,3 +43,6 @@ mybatis:
   type-aliases-package: com.xgx.pojo
   configuration:
       map-underscore-to-camel-case: true
+logging:
+  level:
+    com.xgx.mapper: debug
