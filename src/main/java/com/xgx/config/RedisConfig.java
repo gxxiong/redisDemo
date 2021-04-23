@@ -18,6 +18,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 
 @Configuration
+@EnableCaching
 public class RedisConfig {
 
     @Bean
@@ -35,14 +36,20 @@ public class RedisConfig {
         return cacheManager;
     }
 
+
     @Bean
     public RedisTemplate<Object, Object> redisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
         RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
-
-        redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+        //使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
         redisTemplate.setKeySerializer(new GenericToStringSerializer<Object>(Object.class));
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-
+        //使用StringRedisSerializer来序列化和反序列化redis的key值
+        redisTemplate.setHashKeySerializer(new GenericToStringSerializer<Object>(Object.class));
+        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        //开启事务
+        redisTemplate.setEnableTransactionSupport(true);
+        redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+        redisTemplate.afterPropertiesSet();
 //        redisTemplate.setKeySerializer(new StringRedisSerializer());
 //        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
 //        ObjectMapper objectMapper = new ObjectMapper();
