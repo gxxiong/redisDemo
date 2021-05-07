@@ -101,6 +101,7 @@
             <version>2.1.4</version>
         </dependency>
 
+        <!--多数据源切换-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
@@ -143,13 +144,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>2.0.15</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
@@ -166,7 +160,6 @@
             </exclusions>
         </dependency>
 
-
         <!--jmh性能测试-->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
@@ -178,7 +171,6 @@
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>1.21</version>
         </dependency>
-
 
     </dependencies>
 
