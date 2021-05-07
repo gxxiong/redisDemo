@@ -3,6 +3,8 @@ package com.xgx.redis;
 import com.alibaba.fastjson.JSON;
 import com.xgx.pojo.FileManagement;
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -11,8 +13,6 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -30,7 +30,7 @@ public class EsTest {
     @Before
     public void init() {
         client = new RestHighLevelClient(
-                RestClient.builder(new HttpHost("192.168.8.227", 9200, "http"))
+                RestClient.builder(new HttpHost("127.0.0.1", 9200, "http"))
         );
     }
 
@@ -57,13 +57,13 @@ public class EsTest {
     public void createIndex() throws IOException {
         Settings.Builder builder = Settings.builder().put("index.number_of_shards", 1).put("index.number_of_replicas", 1);
         CreateIndexRequest request = new CreateIndexRequest("pitp-file-management-index").settings(builder);
-        request.mapping(generateBuilder());
+        request.mapping("fileManagement", generateBuilder());
         CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
     }
 
     private XContentBuilder generateBuilder() throws IOException {
         XContentBuilder builder = XContentFactory.jsonBuilder();
-        builder.startObject("completeDoc");
+        builder.startObject();
         {
             builder.startObject("properties");
             {
