@@ -2,8 +2,6 @@ package com.xgx.web;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSON;
-import com.xgx.core.restful.Result;
-import com.xgx.core.restful.ResultGenerator;
 import com.xgx.pojo.DownloadData;
 import com.xgx.pojo.User;
 import com.xgx.service.IThreadPoolService;
@@ -11,15 +9,13 @@ import com.xgx.util.EasyExcelConsumerListener;
 import com.xgx.websocket.WebSocketServer;
 import com.xgx.websocket.WebsocketPublish;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -48,11 +44,13 @@ public class RedisController {
         redisTemplate.opsForValue().set("1",user,1,TimeUnit.DAYS);
     }
 
-    @GetMapping("get")
-    public void getOcr() throws Exception {
-        User user = (User) redisTemplate.opsForValue().get("1");
+    @GetMapping("get/{userId}")
+    @Cacheable(cacheNames="userId",key="#p0")
+    public User getOcr(@PathVariable("userId") String userId) throws Exception {
+        User user = threadPoolService.selectUserById(userId);
+//        User user = (User) redisTemplate.opsForValue().get("1");
         System.out.println(user);
-//        throw new BusinessException(ResultCode.CODE_402,"11111");
+        return user;
     }
 
     @GetMapping("template")
@@ -77,7 +75,7 @@ public class RedisController {
             // 这里需要设置不关闭流
             EasyExcel.write(response.getOutputStream(), DownloadData.class).autoCloseStream(Boolean.FALSE).sheet("模板")
                     .doWrite(data());
-            int i =1/0;
+            int i = 1 / 0;
         } catch (Exception e) {
             // 重置response
             response.reset();
@@ -125,10 +123,29 @@ public class RedisController {
     }
 
     @GetMapping("test")
-    public Result test(String userId) throws Exception {
-        User user = threadPoolService.selectUserById(userId);
-        return ResultGenerator.genSuccessResult(user);
-    }
+    public void test(HttpServletResponse response) throws Exception {
+        InputStream is = null;
+        OutputStream os = null;
+        File file = new File("C:\\git\\pitp_server\\222.zip");
+        try {
+            is = new FileInputStream(file);
+            response.setContentType("application/x-download");
+            response.setHeader("Content-Disposition","attachment;filename="+"22222.zip");
+            response.setHeader("Content-Length", "" + file.length());
 
+            int read =0;
+            byte[] bytes = new byte[2048];
+            os = response.getOutputStream();
+            while((read = is.read(bytes))!=-1){//按字节逐个写入，避免内存占用过高
+                os.write(bytes, 0, read);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            os.flush();
+            os.close();
+            is.close();
+        }
+    }
 
 }

@@ -84,9 +84,11 @@ spring:
         max-active: 8
     port: 6379
     host: 127.0.0.1
-
 mybatis:
   mapper-locations: mapper/*.xml
   type-aliases-package: com.xgx.pojo
   configuration:
-    map-underscore-to-camel-case: true
+      map-underscore-to-camel-case: true
+logging:
+  level:
+    com.xgx.mapper: debug
