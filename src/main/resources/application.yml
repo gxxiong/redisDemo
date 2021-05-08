@@ -30,52 +30,52 @@ spring:
         session-stat-enable: true
         url-pattern: /*
     dynamic:
-      datasource:
         primary: goodsdb #设置默认的数据源或者数据源组,默认值即为master
-        goodsdb:
-          driver-class-name: com.mysql.cj.jdbc.Driver
-          druid:
-            filters: stat,wall,log4j2
-            initial-size: 5
-            max-active: 20
-            max-evictable-idle-time-millis: 300000
-            max-wait: 60000
-            min-evictable-idle-time-millis: 300000
-            min-idle: 5
-            pool-prepared-statements: true
-            share-prepared-statements: true
-            test-on-borrow: false
-            test-on-return: false
-            test-while-idle: true
-            time-between-eviction-runs-millis: 60000
-            validation-query: select 1
-            validation-query-timeout: -1
-          type: com.alibaba.druid.pool.DruidDataSource
-          url: jdbc:mysql://127.0.0.1:3306/store?useSSL=false&useUnicode=true&characterEncoding=UTF-8
-          username: root
-          password: lhddemo
-        orderdb:
-          driver-class-name: com.mysql.cj.jdbc.Driver
-          druid:
-            filters: stat,wall,log4j2
-            initial-size: 5
-            max-active: 20
-            max-evictable-idle-time-millis: 300000
-            max-wait: 60000
-            min-evictable-idle-time-millis: 300000
-            min-idle: 5
-            pool-prepared-statements: true
-            share-prepared-statements: true
-            test-on-borrow: false
-            test-on-return: false
-            test-while-idle: true
-            time-between-eviction-runs-millis: 60000
-            validation-query: select 1
-            validation-query-timeout: -1
-          type: com.alibaba.druid.pool.DruidDataSource
-          url: jdbc:mysql://127.0.0.1:3306/orderdb?useSSL=false&useUnicode=true&characterEncoding=UTF-8
-          username: root
-          password: root
+        datasource:
+          goodsdb:
+            driver-class-name: com.mysql.cj.jdbc.Driver
+            druid:
+              filters: stat,wall,log4j2
+              initial-size: 5
+              max-active: 20
+              max-evictable-idle-time-millis: 300000
+              max-wait: 60000
+              min-evictable-idle-time-millis: 300000
+              min-idle: 5
+              pool-prepared-statements: true
+              share-prepared-statements: true
+              test-on-borrow: false
+              test-on-return: false
+              test-while-idle: true
+              time-between-eviction-runs-millis: 60000
+              validation-query: select 1
+              validation-query-timeout: -1
+            type: com.alibaba.druid.pool.DruidDataSource
+            url: jdbc:mysql://192.168.8.187:3306/goods?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+            username: root
+            password: root
+          orderdb:
+            driver-class-name: com.mysql.cj.jdbc.Driver
+            druid:
+              filters: stat,wall,log4j2
+              initial-size: 5
+              max-active: 20
+              max-evictable-idle-time-millis: 300000
+              max-wait: 60000
+              min-evictable-idle-time-millis: 300000
+              min-idle: 5
+              pool-prepared-statements: true
+              share-prepared-statements: true
+              test-on-borrow: false
+              test-on-return: false
+              test-while-idle: true
+              time-between-eviction-runs-millis: 60000
+              validation-query: select 1
+              validation-query-timeout: -1
+            type: com.alibaba.druid.pool.DruidDataSource
+            url: jdbc:mysql://192.168.8.187:3306/order?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+            username: root
+            password: root
   redis:
     lettuce:
       pool:
@@ -83,7 +83,7 @@ spring:
         min-idle: 0
         max-active: 8
     port: 6379
-    host: 127.0.0.1
+    host: 192.168.8.187
 mybatis:
   mapper-locations: mapper/*.xml
   type-aliases-package: com.xgx.pojo

@@ -17,7 +17,7 @@
     <properties>
         <java.version>1.8</java.version>
         <skipTests>true</skipTests>
-        <mysql-connector.version>5.1.45</mysql-connector.version>
+        <mysql-connector.version>8.0.21</mysql-connector.version>
         <alibaba-fastjson.version>1.2.46</alibaba-fastjson.version>
     </properties>
 
